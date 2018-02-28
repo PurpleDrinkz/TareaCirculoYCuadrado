@@ -13,7 +13,13 @@ struct vec4 {
 	float x, y, z, w;
 };
 
+
+
+
+
 struct Vertice{
 	vec3 posicion;
 	vec4 color;
+	
 };
+

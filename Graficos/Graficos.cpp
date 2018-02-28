@@ -12,11 +12,17 @@
 
 #include "Vertice.h"
 #include "Shader.h"
+
 using namespace std;
 
 GLfloat red, green, blue;
+
 GLuint posicionID;
 GLuint colorID;
+
+vector<Vertice> circulo;
+GLuint vertexArrayCirculoID;
+GLuint bufferCirculoID;
 
 vector<Vertice> triangulo;
 GLuint vertexArrayID;
@@ -26,59 +32,63 @@ vector<Vertice> cuadrado;
 GLuint vertexArrayCuadradoID;
 GLuint bufferCuadradoID;
 
+
+
+
 Shader *shader;
 
-void actualizar()
-{
+void actualizar() {
 
 }
 
-void dibujar()
-{
+void dibujar() {
 	//Enlazar el shader
 	shader->enlazarShader();
-	
 	//Especificar el vertex array
 	glBindVertexArray(vertexArrayID);
-	glBindVertexArray(vertexArrayCuadradoID); //agregado
-	
 	//Dibujar
-	//glDrawArrays(GL_TRIANGLES, 0, triangulo.size());
-	glDrawArrays(GL_POLYGON, 0, cuadrado.size()); //agregado
+	glDrawArrays(GL_TRIANGLES, 0, triangulo.size());
+
 	
-	//soltar el vertex array
+
+	glBindVertexArray(vertexArrayCuadradoID);
+	glDrawArrays(GL_POLYGON, 0, cuadrado.size());
+
+
+	glBindVertexArray(vertexArrayCirculoID);
+	glDrawArrays(GL_POLYGON, 0, circulo.size());
+
+	//Soltar el vertex array
 	glBindVertexArray(0);
-	
-	//soltar el shader
+	//Soltar el shader
 	shader->desenlazarShader();
 }
 
-void inicializarTriangulo()
-{
+
+
+void inicializarTriangulo() {
 	//Inicializar triangulo
 	Vertice v1 =
-	{ vec3(-1.0f, -0.5f, 0.0f), vec4(1.0f,1.0f,1.f,1.0f) };
+	{ vec3(-1.0f,-0.5f,0.0f), vec4(1.0f,1.0f,1.0f,1.0f) };
 	Vertice v2 =
-	{ vec3(0.0f, 0.5f, 0.0f), vec4(1.0f,1.0f,1.f,1.0f) };
+	{ vec3(0.0f,0.5f,0.0f), vec4(1.0f,1.0f,1.0f,1.0f) };
 	Vertice v3 =
-	{ vec3(1.0f, -0.5f, 0.0f), vec4(1.0f,1.0f,1.f,1.0f) };
+	{ vec3(1.0f,-0.5f,0.0f), vec4(1.0f,1.0f,1.0f,1.0f) };
 
 	triangulo.push_back(v1);
 	triangulo.push_back(v2);
 	triangulo.push_back(v3);
 }
 
-void inicializarCuadrado()
-{
-	//Inicializar cuadrado
+void inicializarCuadrado() {
 	Vertice v1 =
-	{ vec3(-0.5f, -0.5f, 0.0f), vec4(1.0f,1.0f,1.f,1.0f) };
+	{ vec3(-0.5f,-0.5f,0.0f), vec4(1.0f,1.0f,1.0f,1.0f) };
 	Vertice v2 =
-	{ vec3(-0.5f, 0.5f, 0.0f), vec4(1.0f,1.0f,1.f,1.0f) };
+	{ vec3(-0.5f,0.5f,0.0f), vec4(1.0f,1.0f,1.0f,1.0f) };
 	Vertice v3 =
-	{ vec3(0.5f, 0.5f, 0.0f), vec4(1.0f,1.0f,1.f,1.0f) };
+	{ vec3(0.5f,0.5f,0.0f), vec4(1.0f,1.0f,1.0f,1.0f) };
 	Vertice v4 =
-	{ vec3(0.5f, -0.5f, 0.0f), vec4(1.0f,1.0f,1.f,1.0f) };
+	{ vec3(0.5f,-0.5f,0.0f), vec4(1.0f,1.0f,1.0f,1.0f) };
 
 	cuadrado.push_back(v1);
 	cuadrado.push_back(v2);
@@ -86,68 +96,82 @@ void inicializarCuadrado()
 	cuadrado.push_back(v4);
 }
 
+void incializarCirculo()
+{
+	Vertice verticeCirculo[360];
+
+	for (int i = 0; i < 360; i++)
+	{
+		verticeCirculo[i] =
+		{
+			vec3(0.4f*cos(i) + 0.0f, 0.5f*sin(i) + 0.0f, 0.0f),
+			vec4(0.0f, 0.0f, 1.0f, 1.0f)
+		};
+		circulo.push_back(verticeCirculo[i]);
+	}
+}
+
 int main()
 {
-	//Declaración de Ventana
+	//Declaración de ventana
 	GLFWwindow *window;
-	
 	//Propiedades de la ventana
 	GLfloat ancho = 1024;
 	GLfloat alto = 768;
 
 	//Inicialización de GLFW
-	if (!glfwInit())
-	{
-		//Si no se inicia bien termina la ejecución
+	if (!glfwInit()) {
+		//Si no se inició bien, terminar la ejecución
 		exit(EXIT_FAILURE);
 	}
 
-	//Inicialización de la ventana
-	window = glfwCreateWindow(ancho, alto, "Gráficos", NULL, NULL);
-
-	//Verificación de creación de ventana
-	if (!window)
-	{
+	//Inicializar la ventana
+	window = glfwCreateWindow(ancho, alto, "Graficos", NULL, NULL);
+	//Verficar si se creó bien la ventana
+	if (!window) {
 		//Cerrar todos los procesos de GLFW
 		glfwTerminate();
 		//Termina ejecución
 		exit(EXIT_FAILURE);
 	}
 
-
-	//Establecer "windows" como contexto
+	//Establecer "window" como contexto
 	glfwMakeContextCurrent(window);
 
 	//Se trae las funciones de OpenGL Moderno
 	glewExperimental = true;
-
 	//Inicializar GLEW
 	GLenum glewError = glewInit();
-
-	//Verificar si GLEW se inicializo bien
-	if (glewError != GLEW_OK)
-	{
+	//Verificar que GLEW se inicializó bien
+	if (glewError != GLEW_OK) {
 		glfwTerminate();
 		exit(EXIT_FAILURE);
 	}
 
+
+
 	const GLubyte *version = glGetString(GL_VERSION);
-	cout << "Version de OpenGL:" << version << endl;
+	cout << "Version de OpenGL: " << version << endl;
+
 
 	red = green = blue = 0.75f;
-
-	inicializarTriangulo();
+	
 	inicializarCuadrado();
+
+
+	incializarCirculo();
+	
 
 	//Crear instancia del shader
 	const char * rutaVertex = "vShaderSimple.shader";
 	const char * rutaFragment = "fShaderSimple.shader";
-
 	shader = new Shader(rutaVertex, rutaFragment);
 
 	//Mapeo de atributos
-	posicionID = glGetAttribLocation(shader->getID(), "posicion");
-	colorID = glGetAttribLocation(shader->getID(), "color");
+	posicionID =
+		glGetAttribLocation(shader->getID(), "posicion");
+	colorID =
+		glGetAttribLocation(shader->getID(), "color");
 
 	//Desenlazar shader
 	shader->desenlazarShader();
@@ -158,65 +182,80 @@ int main()
 
 	//Crear vertex buffer
 	glGenBuffers(1, &bufferID);
-	//De aqui en adelante se trabaja con este buffer
+	//De aqui en adelante se trabja con este buffer
 	glBindBuffer(GL_ARRAY_BUFFER, bufferID);
-
 	//Llenar el buffer
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertice) * triangulo.size(), 
+	glBufferData(GL_ARRAY_BUFFER,
+		sizeof(Vertice) * triangulo.size(),
 		triangulo.data(), GL_STATIC_DRAW);
 
 	//Habilitar el atributo solo en el vertex array en uso
 	glEnableVertexAttribArray(posicionID);
-
+	glEnableVertexAttribArray(colorID);
 	//Especificar a OpenGL como usar la memoria con ese atributo
 	glVertexAttribPointer(posicionID, 3, GL_FLOAT,
 		GL_FALSE, sizeof(Vertice), 0);
-
+	glVertexAttribPointer(colorID, 4, GL_FLOAT, GL_FALSE,
+		sizeof(Vertice), (void*) sizeof(vec3));
 
 	//Soltarlos
 	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER,0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	//Instrucciones par el cuadrado
+	//Instrucciones para el cuadrado
 	glGenVertexArrays(1, &vertexArrayCuadradoID);
 	glBindVertexArray(vertexArrayCuadradoID);
 	glGenBuffers(1, &bufferCuadradoID);
 	glBindBuffer(GL_ARRAY_BUFFER, bufferCuadradoID);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertice) * cuadrado.size(), 
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertice) * cuadrado.size(),
 		cuadrado.data(), GL_STATIC_DRAW);
 	glEnableVertexAttribArray(posicionID);
 	glEnableVertexAttribArray(colorID);
 	glVertexAttribPointer(posicionID, 3, GL_FLOAT,
 		GL_FALSE, sizeof(Vertice), 0);
-	glVertexAttribPointer(colorID, 4, GL_FLOAT,
-		GL_FALSE, sizeof(Vertice), (void*) sizeof(vec3));
+	glVertexAttribPointer(colorID, 4, GL_FLOAT, GL_FALSE,
+		sizeof(Vertice), (void*) sizeof(vec3));
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	
 
-	//Ciclo de Dibujo
-	while (!glfwWindowShouldClose(window))
-	{
+	//Instrucciones circulo
+	glGenVertexArrays(1, &vertexArrayCirculoID);
+	glBindVertexArray(vertexArrayCirculoID);
+	glGenBuffers(1, &bufferCirculoID);
+	glBindBuffer(GL_ARRAY_BUFFER, bufferCirculoID);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertice) * circulo.size(),
+		circulo.data(), GL_STATIC_DRAW);
+	glEnableVertexAttribArray(posicionID);
+	glEnableVertexAttribArray(colorID);
+	glVertexAttribPointer(posicionID, 3, GL_FLOAT,
+		GL_FALSE, sizeof(Vertice), 0);
+	glVertexAttribPointer(colorID, 4, GL_FLOAT, GL_FALSE,
+		sizeof(Vertice), (void*) sizeof(vec3));
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	//Ciclo de dibujo
+	while (!glfwWindowShouldClose(window)) {
 		//Establecer el area de render (viewport)
 		glViewport(0, 0, ancho, alto);
-		//Establecer el color con el que se limpia
+		//Establecer el color con el que se limpia la pantalla
 		glClearColor(red, green, blue, 1);
-
-		//Limpiar pantalla
+		//Limpiar la pantalla
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		//Rutina de Dibujo
+		//rutina de dibujo
 		actualizar();
 		dibujar();
 
-		//Intercambio de Buffers
+		//Intercambio de buffers
 		glfwSwapBuffers(window);
-		//Buscar nueva señal de entrada
+		//Buscar señales de entrada
 		glfwPollEvents();
+
 	}
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
-    return 0;
-}
 
+	return 0;
+}
